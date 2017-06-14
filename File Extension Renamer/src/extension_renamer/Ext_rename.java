@@ -61,13 +61,15 @@ public class Ext_rename {
 				//get the filename
 				String fileName = (filePath.getFileName()).toString();
 				//get the extension
+				//TODO: make it so we can get non 3char extensions
 				String ext = fileName.substring(fileName.length() - 3);
-				//if it is a ogg extension, we'll want to rename the extension to ogg
-				if(oggExt(ext) == true && ext.equals("ogg") == false){
+				//if it is an extension we want to change, we'll want to rename the extension to toExt
+				if(isExt(ext, fromExt) == true && ext.equals(toExt) == false){
 					//add to list of files changed
 					oldNames.add(fileName);
-					//rename extension to be ogg
-					fileName = fileName.substring(0, fileName.length()-3)+"ogg";
+					//rename extension to be toExt
+					//TODO: add support for non 3char extensions
+					fileName = fileName.substring(0, fileName.length()-3)+toExt;
 					//attempt to rename the file using Files.move
 					try{
 						Files.move(filePath, filePath.resolveSibling(fileName), StandardCopyOption.REPLACE_EXISTING);
@@ -106,6 +108,21 @@ public class Ext_rename {
 		}
 		else if(str.equals("oga")){
 			return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * 
+	 * @param str The extension of the file
+	 * @param fromExt Array list of extensions to check
+	 * @return Whether extension is in fromExt
+	 */
+	public static boolean isExt(String str, String[] fromExt){
+		for(int i=0; i<fromExt.length; i++){
+			if(str.equals(fromExt[i])){
+				return true;
+			}
 		}
 		return false;
 	}
