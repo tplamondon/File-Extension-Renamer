@@ -45,7 +45,7 @@ public class Main {
 		System.out.println("Please enter the path to files: ");
 		String folderPath = scanner.nextLine(); //get the folder path
 		
-		Ext_rename.rename(folderPath, "ogg", null, 1);
+		Ext_rename.rename(folderPath, "ogg", new String[] {"ogg", "ogx", "oga"}, 1);
 		
 		//deal with results
 		/* (this is done in the thing so we're good

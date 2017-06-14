@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public class Ext_rename {
 	public Ext_rename(){
-
+		//this isn't used as this is just a static class
 	}
 
 	/**
@@ -61,15 +61,16 @@ public class Ext_rename {
 				//get the filename
 				String fileName = (filePath.getFileName()).toString();
 				//get the extension
-				//TODO: make it so we can get non 3char extensions
-				String ext = fileName.substring(fileName.length() - 3);
+				int index = fileName.lastIndexOf('.');//index of last '.'
+				int extLen = fileName.length() - index - 1; //length of extension
+				//subtract length of the extension to get just the extension (as a substring)
+				String ext = fileName.substring(fileName.length() - extLen);
 				//if it is an extension we want to change, we'll want to rename the extension to toExt
 				if(isExt(ext, fromExt) == true && ext.equals(toExt) == false){
 					//add to list of files changed
 					oldNames.add(fileName);
 					//rename extension to be toExt
-					//TODO: add support for non 3char extensions
-					fileName = fileName.substring(0, fileName.length()-3)+toExt;
+					fileName = fileName.substring(0, fileName.length()-extLen)+toExt;
 					//attempt to rename the file using Files.move
 					try{
 						Files.move(filePath, filePath.resolveSibling(fileName), StandardCopyOption.REPLACE_EXISTING);
