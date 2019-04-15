@@ -68,12 +68,12 @@ public class Main {
 		Option toExtName = new Option("t", "Rename-To", true, "Rename Extensions to");
 		toExtName.setRequired(true);
 		
-		Option fromExtName = new Option("F", "Rename-From", true, "Rename extensions from");
+		Option fromExtName = new Option("f", "Rename-From", true, "Rename extensions from");
 		fromExtName.setRequired(true);
 		fromExtName.setArgs(Option.UNLIMITED_VALUES);
 		
 		Option depthLimit = new Option("d", "depth", true, "Depth to go");
-		depthLimit.setRequired(true);
+		depthLimit.setRequired(false);
 		depthLimit.setType(int.class);
 		
 		options.addOption(folderPathOption);
@@ -112,9 +112,14 @@ public class Main {
 		String[] fromExt = cmd.getOptionValues("Rename-From");
 		int depth = -1;
 		try{
-			depth = (int) cmd.getParsedOptionValue("depth");
+			String depthS = cmd.getOptionValue("depth", "1");
+			depth = Integer.parseInt(depthS);
+			//don't allow 0 or less depth
+			if(depth < 1){
+				depth=1;
+			}
 		}
-		catch(ParseException e){
+		catch(NumberFormatException r){
 			System.err.println("Depth was not an integer");
 			System.exit(1);
 		}
@@ -168,13 +173,16 @@ public class Main {
 				//get the filename
 				String fileName = (filePath.getFileName()).toString();
 				//get the extension
-				String ext = fileName.substring(fileName.length() - 3);
+				//now supporting non 3-char file extensions
+				int lastDot = fileName.lastIndexOf('.');
+				String ext = fileName.substring(lastDot + 1);
+				
 				//if it is a ogg extension, we'll want to rename the extension to ogg
-				if(oggExt(ext) == true && ext.equals("ogg") == false){
+				if(oggExt(ext) == true && ext.equals("ogg") == false && doOggFile == true){
 					//add to list of files changed
 					oldNames.add(fileName);
 					//rename extension to be ogg
-					fileName = fileName.substring(0, fileName.length()-3)+"ogg";
+					fileName = fileName.substring(0, lastDot + 1)+"ogg";
 					//attempt to rename the file using Files.move
 					try{
 						Files.move(filePath, filePath.resolveSibling(fileName), StandardCopyOption.REPLACE_EXISTING);
@@ -184,6 +192,21 @@ public class Main {
 						System.out.println("Something went wrong trying to rename "+fileName.substring(fileName.length()-3));
 						System.out.println("Will continue with the rest of the files");
 					}
+				}
+				else if(isIn(ext, fromExt) == true && doOggFile == false){
+					//add to list of files changed
+					oldNames.add(fileName);
+					//rename extension to be to proper filename
+					fileName = fileName.substring(0, lastDot + 1)+toExt;
+					try{
+						Files.move(filePath, filePath.resolveSibling(fileName), StandardCopyOption.REPLACE_EXISTING);
+					}
+					catch(IOException e){
+						//something went wrong
+						System.out.println("Something went wrong trying to rename "+fileName.substring(fileName.length()-3));
+						System.out.println("Will continue with the rest of the files");
+					}
+
 				}
 			}
 		});
@@ -214,6 +237,15 @@ public class Main {
 		}
 		else if(str.equals("oga")){
 			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isIn(String ext, String[] list){
+		for(int i=0; i<list.length; i++){
+			if(ext.equals(list[i])){
+				return true;
+			}
 		}
 		return false;
 	}
