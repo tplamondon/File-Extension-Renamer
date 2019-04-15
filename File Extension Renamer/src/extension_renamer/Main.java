@@ -17,8 +17,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
-import javafx.scene.shape.Path;
-
 /*
  * Links:
  * http://stackoverflow.com/questions/1844688/read-all-files-in-a-folder
