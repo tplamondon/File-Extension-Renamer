@@ -3,12 +3,21 @@ package extension_renamer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.stream.Stream;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javafx.scene.shape.Path;
 
 /*
  * Links:
@@ -42,15 +51,87 @@ public class Main {
 		Scanner scanner = new Scanner(System.in);
 		//use scanner.nextLine() to get input line
 		//get folder
-		System.out.println("Please enter the path to files: ");
-		String folderPath = scanner.nextLine(); //get the folder path
+		
+		
+		/*
+		 *  Options
+		 */
+		
+		Options options = new Options();
+		//option, long option, has argument, description
+		Option folderPathOption = new Option("p", "path", true, "Folder path");
+		folderPathOption.setRequired(true);
+		
+		Option oggFile = new Option("o", false, "Rename ogg file types to ogg");
+		oggFile.setRequired(false);
+		
+		Option toExtName = new Option("t", "Rename-To", true, "Rename Extensions to");
+		toExtName.setRequired(true);
+		
+		Option fromExtName = new Option("F", "Rename-From", true, "Rename extensions from");
+		fromExtName.setRequired(true);
+		fromExtName.setArgs(Option.UNLIMITED_VALUES);
+		
+		Option depthLimit = new Option("d", "depth", true, "Depth to go");
+		depthLimit.setRequired(true);
+		depthLimit.setType(int.class);
+		
+		options.addOption(folderPathOption);
+		options.addOption(oggFile);
+		options.addOption(toExtName);
+		options.addOption(fromExtName);
+		options.addOption(depthLimit);
+		
+		
+		/*
+		 * Parse options
+		 */
+		
+		CommandLineParser parser = new DefaultParser();
+		HelpFormatter formatter = new HelpFormatter();
+		
+		CommandLine cmd = null;
+		
+		
+		try{
+			cmd = parser.parse(options, args);
+		}
+		catch(ParseException e){
+			System.out.println(e.getMessage());
+            formatter.printHelp("utility-name", options);
+
+            System.exit(1);
+		}
+		
+		
+		
+		//System.out.println("Please enter the path to files: ");
+		String folderPath = cmd.getOptionValue("path");
+		boolean doOggFile = cmd.hasOption("o");
+		String toExt = cmd.getOptionValue("Rename-To");
+		String[] fromExt = cmd.getOptionValues("Rename-From");
+		int depth = -1;
+		try{
+			depth = (int) cmd.getParsedOptionValue("depth");
+		}
+		catch(ParseException e){
+			System.err.println("Depth was not an integer");
+			System.exit(1);
+		}
+		//String folderPath = scanner.nextLine(); //get the folder path
+		
+		/*
+		 * Rename
+		 */
 		
 		//access the folder
-		Stream<Path> paths = null;
+		Stream<java.nio.file.Path> paths = null;
 		boolean error = false;
 		try{
 			//only go to depth 1 (no sub-directories)
-			paths = Files.walk(Paths.get(folderPath), 1);
+			//go to depth
+			paths = Files.walk(Paths.get(folderPath), depth);
+			
 		}
 		catch(IOException e){
 			System.out.println("Folder not found. Exiting now");
@@ -76,6 +157,9 @@ public class Main {
 			}
 		}
 		
+		/*
+		 * Actual renaming
+		 */
 		//Walk the path and select each file (as a Path object)
 		//create arrayList to know what we renamed
 		ArrayList<String> oldNames = new ArrayList<String>();
